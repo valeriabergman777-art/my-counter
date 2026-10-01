@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой счетчик</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px 12px;
+      font-family: Arial, sans-serif;
+      color: #432d50;
+      background: linear-gradient(135deg, #f8e8f2, #eee7ff);
+    }
+
+    h1 {
+      color: #754a91;
+    }
+
+    #grand-total {
+      margin: 12px 0;
+      padding: 14px;
+      text-align: center;
+      color: #684080;
+      background: #eee3fa;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #lines {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .line {
+      padding: 12px;
+      text-align: center;
+      background: #fff8fd;
+      border: 1px solid #e3d0f4;
+      border-radius: 14px;
+    }
+
+    .line h2 {
+      min-height: 38px;
+      margin: 0 0 10px;
+      color: #754a91;
+      font-size: 16px;
+    }
+
+    .items {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .item {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 4px;
+      background: #f6efff;
+      border-radius: 10px;
+    }
+
+    .item-name {
+      margin-bottom: 6px;
+      color: #754a91;
+      font-size: 14px;
+    }
+
+    .count {
+      margin: 5px;
+      color: #895ba8;
+      font-size: 22px;
+    }
+
+    .price,
+    .total {
+      margin-top: 6px;
+      color: #63436f;
+      font-size: 12px;
+    }
+
+    button {
+      width: 100%;
+      padding: 8px 4px;
+      color: white;
+      background: linear-gradient(135deg, #83c5e8, #a985d5);
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .line-total {
+      margin-top: 12px;
+      padding: 9px 5px;
+      color: #684080;
+      background: #eee3fa;
+      border-radius: 9px;
+      font-weight: bold;
+    }
+
+    .line-total span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: normal;
+    }
+
+    max-width: 380px {
+      #lines {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Мой счетчик 🐱</h1>
+
+  <div id="grand-total">Итого по всем линиям: 0.00</div>
+
+  <div id="lines"></div>
+
+  <script>
+    const lines = [
+      {
+        name: "Сортировка",
+        items: [
+          { name: "Звонок", price: 0.63 }
+        ]
+      },
+      {
+        name: "Голос ФК",
+        items: [
+          { name: "Звонок", price: 1.36 }
+        ]
+      },
+      {
+        name: "Л2",
+        items: [
+          { name: "Звонок", price: 1.35 },
+          { name: "Письмо", price: 0.48 }
+        ]
+      },
+      {
+        name: "Голос аккаунтов",
+        items: [
+          { name: "Звонок", price: 1.07 },
+          { name: "Письмо", price: 0.26 }
+        ]
+      }
+    ];
+
+    const container = document.getElementById("lines");
+    const grandTotalElement = document.getElementById("grand-total");
+
+    function updateGrandTotal() {
+      let grandTotal = 0;
+
+      document.querySelectorAll(".line-total").forEach(function(element) {
+        grandTotal += Number(element.dataset.total || 0);
+      });
+
+      grandTotalElement.textContent =
+        `Итого по всем линиям: ${grandTotal.toFixed(2)}`;
+    }
+
+    lines.forEach(function(line) {
+      const card = document.createElement("section");
+      card.className = "line";
+
+      card.innerHTML = `
+        <h2>${line.name}</h2>
+        <div class="items"></div>
+        <div class="line-total"></div>
+      `;
+
+      const itemsContainer = card.querySelector(".items");
+      const lineTotalElement = card.querySelector(".line-total");
+      const counters = [];
+
+      function updateLineTotal() {
+        let total = 0;
+
+        counters.forEach(function(counter) {
+          total += counter.count * counter.price;
+        });
+lineTotalElement.dataset.total = total.toFixed(2);
+
+        const details = counters
+          .map(function(counter) {
+            const itemTotal = counter.count * counter.price;
+            return `${counter.name}: ${itemTotal.toFixed(2)}`;
+          })
+          .join(" · ");
+
+        lineTotalElement.innerHTML =
+          `Сумма линии: ${total.toFixed(2)}<span>${details}</span>`;
+
+        updateGrandTotal();
+      }
+
+      line.items.forEach(function(item) {
+        const counter = {
+          name: item.name,
+          price: item.price,
+          count: 0
+        };
+
+        counters.push(counter);
+
+        const itemElement = document.createElement("div");
+        itemElement.className = "item";
+
+        itemElement.innerHTML = `
+          <div class="item-name">${item.name}</div>
+          <div class="count">0</div>
+          <button type="button">🐱 Отметить</button>
+          <div class="price">Цена: ${item.price.toFixed(2)}</div>
+          <div class="total">Сумма: 0.00</div>
+        `;
+
+        const countElement = itemElement.querySelector(".count");
+        const totalElement = itemElement.querySelector(".total");
+        const button = itemElement.querySelector("button");
+
+        button.addEventListener("click", function() {
+          counter.count++;
+
+          countElement.textContent = counter.count;
+          totalElement.textContent =
+            `Сумма: ${(counter.count * counter.price).toFixed(2)}`;
+
+          updateLineTotal();
+        });
+
+        itemsContainer.appendChild(itemElement);
+      });
+
+      container.appendChild(card);
+      updateLineTotal();
+    });
+  </script>
+</body>
+</html>
